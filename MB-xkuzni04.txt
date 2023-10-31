@@ -3,16 +3,22 @@
 
 1. Byla "Line" vektorizace časově efektivní? Proč?
 ==============================================================================
+Ano, v rámci jedne instrukce jsme načetli blok dat (proměnných) misto toho, abychom 
+načítali vždy v jedne instrukci jednu proměnnou, což výrazně zvýši časovou efektivitu.
 
 
 2. Jaká byla dosažena výkonnost v Intel Advisoru pro jednotlivé implementace 
 (v GFLOPS)?
 ==============================================================================
+Line: 0.719 GFLOPS
+
+Batch: 0.719 GFLOPS
 
 
 3. Jaká část kódu byla vektorizována v "Line" implementaci? Vyčteme tuto 
 informaci i u batch kalkulátoru?
 ==============================================================================
+Nejvnitřnější cyklus, 
 
 
 4. Co vyčteme z Roofline modelu pro obě vektorizované implementace?

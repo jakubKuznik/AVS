@@ -47,7 +47,7 @@ int * BatchMandelCalculator::calculateMandelbrot () {
 		{
 			float x, y_s, y, x2, y2;
 			y_s = y_start + (row+i) * dy; // current imaginary value
-			#pragma omp simd 
+			//#pragma omp simd 
 			for (int j = 0; j < 16; j++)
 			{
 				float x_s = x_start + (j+column) *dx;

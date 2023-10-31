@@ -28,21 +28,19 @@ LineMandelCalculator::~LineMandelCalculator() {
 
 int * LineMandelCalculator::calculateMandelbrot () {
 
-	int half = height/2;
+int half = height/2;
 	int *fData = data; 
-	int *bData = data;
-	for (int j = 0; j < width; j++)
+	int *bData = &data[(height)*width];
+	for (int i = 0; i < half; i++)
 	{
-		float x_s = x_start + j *dx;
 		float x, y_s, y, x2, y2;
-		bData = &data[((height-1)*width)+j];
-		fData = &data[j];
+		y_s = y_start + i * dy; // current imaginary value
 		#pragma omp simd 
-		for (int i = 0; i < half; i++)
+		for (int j = 0; j < width; j++)
 		{
-			int p = i*width;
+			float x_s = x_start + j *dx;
 			x = x_s; 
-			y_s = y_start + i * dy; // current imaginary value
+
 			y = y_s; // current imaginary value
 
 			int value = limit;
@@ -58,14 +56,11 @@ int * LineMandelCalculator::calculateMandelbrot () {
 					break;
 				}
 			}	
-
-			/// inverse 
-			*(fData + p) = *(bData - p) = value;
-			//data[((height-i-1)*width)+j] = data[i*width+j] = value;  
+			*(fData++) = *((bData--)-(width-(j*2)))  = value;	
 		}
+
 	}
 	return data;
-	
 }
 
 

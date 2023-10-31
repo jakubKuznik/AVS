@@ -30,7 +30,7 @@ int * LineMandelCalculator::calculateMandelbrot () {
 
 int half = height/2;
 	int *fData = data; 
-	int *bData = &data[(height)*width];
+	int *bData = &data[height*width];
 	for (int i = 0; i < half; i++)
 	{
 		float x, y_s, y, x2, y2;

@@ -15,6 +15,8 @@
 
 #include "BatchMandelCalculator.h"
 
+#define MS 16
+
 BatchMandelCalculator::BatchMandelCalculator (unsigned matrixBaseSize, unsigned limit) :
 	BaseMandelCalculator(matrixBaseSize, limit, "BatchMandelCalculator")
 {
@@ -28,31 +30,24 @@ BatchMandelCalculator::~BatchMandelCalculator() {
 
 
 int * BatchMandelCalculator::calculateMandelbrot () {
-
-
-	int half = height/2;
-	int *fData = data; 
-	int *bData = &data[(height)*width];
 	
-
-	int matrixSize = 16*16;
+	int half = height/2;
+	int matrixSize = MS*MS;
 	int numberOfMatrix = (height*width)/matrixSize;
 	
-	for (int m = 0; m < numberOfMatrix; m++){
-		int row = 16*(int)((16*(m))/width);
-		int column = (16*m)%width;
-		int mx = column + row*width;
-		int *fData = &data[mx]; 
-		for (int i = 0; i < 16; i++)
+	for (int m = 0; m < numberOfMatrix/2; m++){
+		int row = MS*(int)((MS*(m))/width);
+		int column = (MS*m)%width;
+		
+		for (int i = 0; i < MS; i++)
 		{
 			float x, y_s, y, x2, y2;
 			y_s = y_start + (row+i) * dy; // current imaginary value
-			//#pragma omp simd 
-			for (int j = 0; j < 16; j++)
+			#pragma omp simd 
+			for (int j = 0; j < MS; j++)
 			{
 				float x_s = x_start + (j+column) *dx;
 				x = x_s; 
-
 				y = y_s; // current imaginary value
 
 				int value = limit;
@@ -68,14 +63,12 @@ int * BatchMandelCalculator::calculateMandelbrot () {
 						break;
 					}
 				}	
-				*(fData++) = value;
-				// *(fData++) = *((bData--)-(width-(j*2)))  = value;	
+				data[((row+i)*width)+(j+column)] = value;
+				data[(((height-1)*width)-((row+i)*width)) + (j+column)] = value;
 			}
-			fData += width - 16;
 		}
 	}
-		return data;
-
+	return data;
 }
 
 

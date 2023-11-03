@@ -45,6 +45,7 @@ int * LineMandelCalculator::calculateMandelbrot () {
 	int *cu = curr; 
 	double x, y_s, y, x2, y2, x_s;
 
+	int sum = 0;
 
 	for (int i = 0; i < half; i++){
 		y_s = y_start + i * dy; // current imaginary value
@@ -62,6 +63,7 @@ int * LineMandelCalculator::calculateMandelbrot () {
 		im = imag;
 
 		for (int k = 0; (k < limit); k++){
+			sum = 0; 	
 			#pragma omp simd 
 			for (int j = 0; j < width; j++){
 				x_s = x_start + j*dx;
@@ -71,6 +73,7 @@ int * LineMandelCalculator::calculateMandelbrot () {
 				if (x2 + y2 > 4.0){
 					if (*(cu) == limit){
 						*(cu) = k;
+						sum++;
 					}
 				}
 				*im = 2.0f * (*re) * (*im) + y_s;
@@ -82,9 +85,11 @@ int * LineMandelCalculator::calculateMandelbrot () {
 			cu = curr;
 			re = real;
 			im = imag;
-			memcpy(data+((width*(height-i-1))), curr, width*sizeof(int));
+			if (sum == width)
+				break;
 		}
-			memcpy(data+(i*width), curr, width*sizeof(int));
+		memcpy(data+(i*width), curr, width*sizeof(int));
+		memcpy(data+((width*(height-i-1))), curr, width*sizeof(int));
 	}
 	return data;
 }

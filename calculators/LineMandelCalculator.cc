@@ -22,6 +22,7 @@ LineMandelCalculator::LineMandelCalculator (unsigned matrixBaseSize, unsigned li
 {
 	data = (int *)(_mm_malloc(height * width * sizeof(int), 64));
 	real = (double *)(_mm_malloc(width * sizeof(double), 64));
+	real_s = (double *)(_mm_malloc(width * sizeof(double), 64));
 	imag = (double *)(_mm_malloc(width * sizeof(double), 64));
 	curr = (int *)(_mm_malloc(width * sizeof(int), 64));
 }
@@ -32,6 +33,8 @@ LineMandelCalculator::~LineMandelCalculator() {
 	_mm_free(real);
 	real = NULL;
 	_mm_free(imag);
+	real_s = NULL;
+	_mm_free(real_s);
 	imag = NULL;
 	_mm_free(curr);
 	curr = NULL;
@@ -42,6 +45,7 @@ int * LineMandelCalculator::calculateMandelbrot () {
 	int half = height/2;
 	double *re = real;
 	double *im = imag;
+	double *r_s = real_s;
 	int *cu = curr; 
 	double x, y_s, y, x2, y2, x_s;
 
@@ -59,15 +63,17 @@ int * LineMandelCalculator::calculateMandelbrot () {
 			*re = x_start + p * dx;
 			re++;
 		}
+
 		re = real;
 		im = imag;
+		
+		memcpy(real_s, re, width*sizeof(double));
 
+		sum = 0; 	
 		for (int k = 0; (k < limit); k++){
-			sum = 0; 	
-			#pragma omp simd 
+			r_s = real_s;
+			#pragma omp simd simdlen(64) 
 			for (int j = 0; j < width; j++){
-				x_s = x_start + j*dx;
-
 				x2 = (*re)*(*re);
 				y2 = (*im)*(*im);
 				if (x2 + y2 > 4.0){
@@ -77,7 +83,8 @@ int * LineMandelCalculator::calculateMandelbrot () {
 					}
 				}
 				*im = 2.0f * (*re) * (*im) + y_s;
-				*re = x2 - y2 + x_s;
+				*re = x2 - y2 + *r_s;
+				r_s++;
 				im++;
 				re++;
 				cu++;

@@ -15,16 +15,18 @@
 
 #include "BatchMandelCalculator.h"
 
-#define MS 16
+#include <immintrin.h>
+
+#define MS 64
 
 BatchMandelCalculator::BatchMandelCalculator (unsigned matrixBaseSize, unsigned limit) :
 	BaseMandelCalculator(matrixBaseSize, limit, "BatchMandelCalculator")
 {
-	data = (int *)(malloc(height * width * sizeof(int)));
+	data = (int *)(_mm_malloc(height * width * sizeof(int), 64));
 }
 
 BatchMandelCalculator::~BatchMandelCalculator() {
-	free(data);
+	_mm_free(data);
 	data = NULL;
 }
 
@@ -43,7 +45,7 @@ int * BatchMandelCalculator::calculateMandelbrot () {
 		{
 			float x, y_s, y, x2, y2;
 			y_s = y_start + (row+i) * dy; // current imaginary value
-			#pragma omp simd 
+			#pragma omp simd simdlen(64) 
 			for (int j = 0; j < MS; j++)
 			{
 				float x_s = x_start + (j+column) *dx;

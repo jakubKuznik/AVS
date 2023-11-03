@@ -10,55 +10,81 @@
 #include <algorithm>
 
 #include <stdlib.h>
-
+#include <cstring>
 
 #include "LineMandelCalculator.h"
+
+#include <immintrin.h>
 
 
 LineMandelCalculator::LineMandelCalculator (unsigned matrixBaseSize, unsigned limit) :
 	BaseMandelCalculator(matrixBaseSize, limit, "LineMandelCalculator")
 {
-	data = (int *)(malloc(height * width * sizeof(int)));
+	data = (int *)(_mm_malloc(height * width * sizeof(int), 64));
+	real = (double *)(_mm_malloc(width * sizeof(double), 64));
+	imag = (double *)(_mm_malloc(width * sizeof(double), 64));
+	curr = (int *)(_mm_malloc(width * sizeof(int), 64));
 }
 
 LineMandelCalculator::~LineMandelCalculator() {
-	free(data);
+	_mm_free(data);
 	data = NULL;
+	_mm_free(real);
+	real = NULL;
+	_mm_free(imag);
+	imag = NULL;
+	_mm_free(curr);
+	curr = NULL;
 }
 
 int * LineMandelCalculator::calculateMandelbrot () {
 
-int half = height/2;
-	int *fData = data; 
-	int *bData = &data[height*width];
-	for (int i = 0; i < half; i++)
-	{
-		float x, y_s, y, x2, y2;
+	int half = height/2;
+	double *re = real;
+	double *im = imag;
+	int *cu = curr; 
+	double x, y_s, y, x2, y2, x_s;
+
+
+	for (int i = 0; i < half; i++){
 		y_s = y_start + i * dy; // current imaginary value
+		// INIT VALUES
+
+		std::uninitialized_fill(curr, curr+width, limit);
+		std::uninitialized_fill(imag, imag+width, y_s);
+
 		#pragma omp simd 
-		for (int j = 0; j < width; j++)
-		{
-			float x_s = x_start + j *dx;
-			x = x_s; 
-
-			y = y_s; // current imaginary value
-
-			int value = limit;
-			for (int k = 0;(k < limit); k++)
-			{
-				x2 = x*x;
-				y2 = y*y;
-				y = 2.0f * x * y + y_s;
-				x = x2 - y2 + x_s; 
-
-				if (x2 + y2 > 4.0f){
-					value = k;
-					break;
-				}
-			}	
-			*(fData++) = *((bData--)-(width-(j*2)))  = value;	
+		for (int p = 0; p < width; p++){
+			*re = x_start + p * dx;
+			re++;
 		}
+		re = real;
+		im = imag;
 
+		for (int k = 0; (k < limit); k++){
+			#pragma omp simd 
+			for (int j = 0; j < width; j++){
+				x_s = x_start + j*dx;
+
+				x2 = (*re)*(*re);
+				y2 = (*im)*(*im);
+				if (x2 + y2 > 4.0){
+					if (*(cu) == limit){
+						*(cu) = k;
+					}
+				}
+				*im = 2.0f * (*re) * (*im) + y_s;
+				*re = x2 - y2 + x_s;
+				im++;
+				re++;
+				cu++;
+			}
+			cu = curr;
+			re = real;
+			im = imag;
+			memcpy(data+((width*(height-i-1))), curr, width*sizeof(int));
+		}
+			memcpy(data+(i*width), curr, width*sizeof(int));
 	}
 	return data;
 }

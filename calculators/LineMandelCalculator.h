@@ -16,4 +16,8 @@ public:
 
 private:
     int *data;
+    int *curr;
+    double *real;
+    double *real_s;
+    double *imag;
 };

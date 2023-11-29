@@ -1,28 +1,47 @@
 #### Stručně odpovězte na následující otázky: ######
 
-
 1. Byla "Line" vektorizace časově efektivní? Proč?
 ==============================================================================
-Ano, v rámci jedne instrukce jsme načetli blok dat (proměnných) misto toho, abychom 
-načítali vždy v jedne instrukci jednu proměnnou, což výrazně zvýši časovou efektivitu.
 
+Ano, "Line" byla časově efektivně vektorizována. Byla využita technika "Single Instruction, 
+Multiple Data" (SIMD), což znamená, že byla provedena jedna instrukce, ale v této instrukci
+se pracovalo najednou s více daty, vektorem dat (proměnnými). Tato technika zvyšuje časovou 
+efektivitu tím, že provádí více operací současně, což vede k rychlejšímu zpracování dat a
+většímu výpočetnímu výkonu, oproti referenčnímu řešení.
 
 2. Jaká byla dosažena výkonnost v Intel Advisoru pro jednotlivé implementace 
 (v GFLOPS)?
 ==============================================================================
-Line: 0.719 GFLOPS
 
-Batch: 0.719 GFLOPS
-
+- Line: 16.61 GFLOPS
+- Batch: 23.41 GFLOPS
 
 3. Jaká část kódu byla vektorizována v "Line" implementaci? Vyčteme tuto 
 informaci i u batch kalkulátoru?
 ==============================================================================
-Nejvnitřnější cyklus, 
+
+V "Line" implemeantaci byl vektorizován nejvnitřnější cyklus, tedy ten, který prochází
+řádky. Tuto část vyčteme i v batch kalkulátoru, protože intel advisor nám ukazuje, které 
+smyčky se podařilo úspešně vektorizovat a které ne. V případě Batch kalkulátoru jsme podobně
+jako u line kalkulatoru vektorizovali nejvnitřnější smyčku. 
 
 
 4. Co vyčteme z Roofline modelu pro obě vektorizované implementace?
 ==============================================================================
+V roofline modelu jsme vyčetli několik užitečných informací, které nám napoví, jak moc 
+ještě teoreticky můžeme optimalizovat kód. 
 
+- Výpočetní výkon (GFLOPS): Roofline model nám ukázal, kolik gigaflopů za sekundu (GFLOPS) 
+naše implementace dosahuje. Tento údaj se nachází na Y ose a je různý pro různe části kodu. 
 
+- Aritmetická intenzita: Roofline model také vyčíslil aritmetickou intenzitu, ta se zobrazuje 
+na ose X. ukazuje nám poměr aritmetických operací k množství datového přenosu do pamětí cache. 
+V Batch implementaci je aritmetická intenzita rovná 16.77 F/B a v Line implementaci to je 0.156 F/B   
+
+- Blízkost k limitům paměti cache: Model nám poskytl informaci o tom, jak blízko se naše 
+implementace přibližuje rychlostním limitům různých úrovní mezipaměti (cache). To nám 
+umožňuje identifikovat, kde mohou být potenciální úzká místa a kde je prostor 
+pro vylepšení v rámci optimalizace paměti.
+
+- Čas výpočtu, Čas pro jednotlivé smyčky, počet jader, počet fyzických jader.
 
